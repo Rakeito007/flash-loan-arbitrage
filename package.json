@@ -1,0 +1,30 @@
+{
+  "name": "flash-loan-app",
+  "version": "1.0.0",
+  "description": "Low-risk flash loan application with MetaMask integration",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "node": "hardhat node",
+    "deploy:local": "hardhat run scripts/deploy.js --network localhost",
+    "deploy:sepolia": "hardhat run scripts/deploy.js --network sepolia",
+    "frontend": "cd frontend && npm start",
+    "install:all": "npm install && cd frontend && npm install"
+  },
+  "keywords": ["flash-loan", "defi", "ethereum", "metamask"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "hardhat": "^2.19.0"
+  },
+  "dependencies": {
+    "@aave/core-v3": "^1.19.0",
+    "@openzeppelin/contracts": "^5.0.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "hardhat": "^2.19.0"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "name": "flash-loan-bot-controller",
+  "version": "1.0.0",
+  "description": "Desktop controller for Flash Loan Arbitrage Bot",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "keywords": ["arbitrage", "bot", "controller"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "dependencies": {
+    "node-pty": "^1.0.0"
+  },
+  "build": {
+    "appId": "com.flashloan.botcontroller",
+    "productName": "Flash Loan Bot Controller",
+    "mac": {
+      "category": "public.app-category.finance",
+      "target": "dmg"
+    },
+    "files": [
+      "**/*",
+      "!../bot/node_modules/**/*"
+    ]
+  }
+}

@@ -1,0 +1,46 @@
+node_modules/
+.env
+.env.*
+*.env
+*.key
+*private*
+dist/
+build/
+cache/
+artifacts/
+coverage/
+coverage.json
+typechain/
+typechain-types/
+
+# Hardhat files
+.hardhat/
+
+# Frontend
+frontend/node_modules/
+frontend/build/
+
+# Bot
+bot/.env
+bot/.env.*
+bot/*.log
+
+# Desktop app
+desktop-app/node_modules/
+desktop-app/dist/
+
+# Logs
+*.log
+npm-debug.log*
+bot_output.log
+price_alert_bot.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Sensitive files
+*.pem
+*.p12
+secrets/
+private/

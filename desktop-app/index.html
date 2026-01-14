@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flash Loan Bot Controller</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 Flash Loan Arbitrage Bot</h1>
+            <p class="subtitle">Control Panel</p>
+        </header>
+
+        <div class="status-section">
+            <div class="status-card">
+                <h3>Bot Status</h3>
+                <div class="status-indicator">
+                    <span id="status-dot" class="dot stopped"></span>
+                    <span id="status-text">Stopped</span>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <h3>Configuration</h3>
+                <div class="info-item">
+                    <span class="label">Contract:</span>
+                    <span id="contract-address" class="value">Loading...</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Network:</span>
+                    <span id="rpc-url" class="value">Loading...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls-section">
+            <button id="start-btn" class="btn btn-start">
+                ▶️ Start Bot
+            </button>
+            <button id="stop-btn" class="btn btn-stop" disabled>
+                ⏹️ Stop Bot
+            </button>
+        </div>
+
+        <div class="output-section">
+            <div class="output-header">
+                <h3>Bot Output</h3>
+                <button id="clear-btn" class="btn-small">Clear</button>
+            </div>
+            <div id="output" class="output-container">
+                <div class="output-placeholder">
+                    Bot output will appear here when started...
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-section">
+            <h3>Statistics</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-label">Uptime</span>
+                    <span id="uptime" class="stat-value">00:00:00</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Scans</span>
+                    <span id="scan-count" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Opportunities</span>
+                    <span id="opportunities-count" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Trades</span>
+                    <span id="trades-count" class="stat-value">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="renderer.js"></script>
+</body>
+</html>

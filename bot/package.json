@@ -1,0 +1,23 @@
+{
+  "name": "flash-loan-bot",
+  "version": "1.0.0",
+  "description": "Off-chain bot for flash loan arbitrage with Flashbots integration",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node arbitrage-bot.js",
+    "start:original": "node index.js",
+    "scanner": "node scanner.js",
+    "test": "node test.js"
+  },
+  "keywords": ["flash-loan", "arbitrage", "flashbots", "mev"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "ethers": "^6.9.0",
+    "dotenv": "^16.3.0",
+    "axios": "^1.6.0",
+    "node-cron": "^3.0.3"
+  },
+  "type": "module"
+}
