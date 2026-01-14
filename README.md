@@ -1,244 +1,142 @@
-# Flash Loan Arbitrage App
+# Flash Loan Arbitrage Bot
 
-A low-risk flash loan arbitrage application that buys tokens on Aave and sells them on Moonwell, with MetaMask integration.
+A complete flash loan arbitrage system with DexScreener integration, continuous scanning, and macOS desktop controller.
 
-## Strategy
-
-This app implements a flash loan arbitrage strategy:
-
-1. **Borrow** assets via flash loan from Aave
-2. **Buy** tokens on Aave DEX (at lower price)
-3. **Sell** tokens on Moonwell DEX (at higher price)
-4. **Repay** flash loan + premium
-5. **Keep** the profit
-
-## Features
-
-- ✅ **Flash Loan Execution** - Borrow and repay in a single transaction
-- ✅ **Arbitrage Strategy** - Buy on Aave, sell on Moonwell
-- ✅ **MetaMask Integration** - Seamless wallet connection
-- ✅ **Profit Estimation** - Real-time profit calculation before execution
-- ✅ **Safety Mechanisms** - Built-in risk controls:
-  - Maximum loan amount limits
-  - Minimum profit thresholds
-  - Slippage protection
-  - Reentrancy guards
-- ✅ **Aave V3 Integration** - Uses Aave's flash loan protocol
-- ✅ **Modern UI** - Clean, responsive React frontend
-
-## Architecture
+## 🚀 Features
 
 ### Smart Contracts
-- `FlashLoanReceiver.sol` - Main contract that handles flash loan execution and arbitrage
-- Implements the full arbitrage strategy: Aave → Moonwell
+- **BaseMEVArb**: Advanced flash loan arbitrage with Aave integration
+- **ArbitrageUniswapMoonwell**: Cross-DEX arbitrage (Uniswap ↔ Moonwell)
+- **OwnCapitalArb**: Simple own capital trading
 
-### Frontend
-- React app with MetaMask integration
-- Real-time profit estimation
-- Transaction status tracking
-- Safety parameter display
+### Bot System
+- **Continuous Scanning**: DexScreener integration for opportunity discovery
+- **Automatic Execution**: Executes profitable trades automatically
+- **Bidirectional Trading**: Buy on one DEX, sell on another
+- **Low Competition Filtering**: Avoids MEV bots
+- **Safety Mechanisms**: Profit validation, gas protection, slippage protection
 
-## Prerequisites
+### Desktop App
+- **macOS Controller**: Beautiful Electron-based interface
+- **Start/Stop Controls**: One-click bot control
+- **Live Monitoring**: Real-time output and statistics
+- **Dashboard**: Track uptime, scans, opportunities, trades
 
-- Node.js (v18 or higher)
-- MetaMask browser extension
-- ETH for gas fees (testnet or mainnet)
-- Access to networks where both Aave and Moonwell operate (Base network recommended)
+## 📁 Project Structure
 
-## Installation
-
-1. **Install dependencies:**
-   ```bash
-   npm run install:all
-   ```
-
-2. **Set up environment variables:**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your private key and RPC URLs
-   ```
-
-3. **Update router addresses:**
-   - Edit `scripts/deploy.js` and update the router addresses for your target network
-   - Aave router: Address of Aave's swap router
-   - Moonwell router: Address of Moonwell's DEX router
-
-4. **Compile contracts:**
-   ```bash
-   npm run compile
-   ```
-
-## Deployment
-
-### Local Development
-
-1. Start local Hardhat node:
-   ```bash
-   npm run node
-   ```
-
-2. Deploy to local network (in a new terminal):
-   ```bash
-   npm run deploy:local
-   ```
-
-### Base Network (Recommended for Moonwell)
-
-Moonwell operates on Base network. To deploy:
-
-1. Get Base ETH from a faucet
-2. Update `.env` with your private key and Base RPC URL
-3. Update router addresses in `scripts/deploy.js`:
-   ```javascript
-   base: {
-     aave: "YOUR_AAVE_ROUTER_ON_BASE",
-     moonwell: "0x4752ba5dbc23f44d87826276bf6fd6b1c372ad24", // Moonwell router
-   }
-   ```
-4. Deploy:
-   ```bash
-   hardhat run scripts/deploy.js --network base
-   ```
-
-### Sepolia Testnet
-
-1. Get Sepolia ETH from [faucet](https://sepoliafaucet.com/)
-2. Update `.env` with your private key and Sepolia RPC URL
-3. Update router addresses in `scripts/deploy.js`
-4. Deploy:
-   ```bash
-   npm run deploy:sepolia
-   ```
-
-5. Copy the deployed contract address
-6. Update `frontend/src/App.js` with the contract address, or set `REACT_APP_CONTRACT_ADDRESS` in `.env`
-
-## Running the Frontend
-
-```bash
-npm run frontend
+```
+flash-loan-app/
+├── contracts/          # Solidity smart contracts
+├── bot/               # Off-chain arbitrage bot
+├── desktop-app/        # macOS desktop controller
+├── scripts/           # Deployment and utility scripts
+├── frontend/          # React frontend (original)
+└── test/              # Contract tests
 ```
 
-The app will open at `http://localhost:3000`
+## 🛠️ Setup
 
-## Usage
+### Prerequisites
+- Node.js v18+
+- MetaMask or wallet
+- Base network access
 
-1. **Connect MetaMask:**
-   - Click "Connect MetaMask" button
-   - Approve the connection in MetaMask
-   - Ensure you're on the correct network (Base for Moonwell, or your target network)
-
-2. **Set Up Arbitrage:**
-   - Select the asset to flash loan (e.g., WETH)
-   - Enter the amount to borrow
-   - Select token to buy on Aave
-   - Select token to sell on Moonwell (usually same as token to buy)
-   - Review the profit estimation
-
-3. **Execute Arbitrage:**
-   - Click "Execute Arbitrage"
-   - Confirm the transaction in MetaMask
-   - Wait for confirmation
-
-4. **Monitor:**
-   - Watch for transaction confirmations
-   - Check profit in the success message
-
-## How It Works
-
-### Step-by-Step Execution
-
-1. **Flash Loan**: Contract borrows assets from Aave (no collateral needed)
-2. **Buy on Aave**: Uses borrowed assets to buy tokens on Aave's DEX
-3. **Sell on Moonwell**: Sells the tokens on Moonwell's DEX
-4. **Repay**: Repays the flash loan + premium (typically 0.09%)
-5. **Profit**: Keeps any remaining tokens as profit
-
-### Safety Checks
-
-The contract includes several safety mechanisms:
-
-- **Max Loan Amount**: Prevents borrowing more than the configured limit
-- **Min Profit Threshold**: Ensures operations only execute if profit meets minimum requirements
-- **Slippage Protection**: Prevents execution if price moves unfavorably
-- **Reentrancy Guard**: Prevents reentrancy attacks
-- **Profit Estimation**: Frontend estimates profit before execution
-
-## Important Notes
-
-⚠️ **Network Compatibility**: Moonwell operates on Base network. Ensure both Aave and Moonwell are available on your target network.
-
-⚠️ **Router Addresses**: You must update the router addresses in `scripts/deploy.js` with the correct addresses for your network:
-- Aave swap router address
-- Moonwell DEX router address
-
-⚠️ **Gas Costs**: Flash loan arbitrage transactions can be expensive. Monitor gas costs and ensure profitability after fees.
-
-⚠️ **Price Changes**: Arbitrage opportunities can disappear quickly. Prices change between estimation and execution.
-
-⚠️ **Testing**: Always test on testnet first with small amounts before using real funds.
-
-## Customization
-
-### Update Safety Parameters
-
-Call `updateSafetyParams()` on the deployed contract:
-- `maxLoanAmount`: Maximum ETH that can be borrowed
-- `minProfitThreshold`: Minimum profit in basis points (100 = 1%)
-- `maxSlippageBps`: Maximum acceptable slippage in basis points
-
-### Update Router Addresses
-
-Call `updateRouters()` on the deployed contract:
-- `_aaveRouter`: New Aave router address
-- `_moonwellRouter`: New Moonwell router address
-
-## Testing
+### Installation
 
 ```bash
-npm test
+# Install root dependencies
+npm install
+
+# Install bot dependencies
+cd bot && npm install && cd ..
+
+# Install desktop app dependencies
+cd desktop-app && npm install && cd ..
 ```
 
-## Network Addresses
+### Configuration
 
-### Aave V3 Pool Addresses Provider
-- **Sepolia**: `0x012bAC54348C0E635dCAc9D5FB99f06F24136C9a`
-- **Mainnet**: `0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e`
-- **Base**: `0xe20fCBdBfFC4Dd138cE8b2E6FBb6CB49777ad64D`
+1. **Root `.env`**:
+```bash
+BASE_RPC_URL=https://sepolia.base.org
+PRIVATE_KEY=your_private_key_here
+```
 
-### Moonwell
-- **Base Router**: `0x4752ba5dbc23f44d87826276bf6fd6b1c372ad24` (verify on [Moonwell docs](https://docs.moonwell.fi/))
+2. **Bot `.env`**:
+```bash
+RPC_URL=https://sepolia.base.org
+CONTRACT_ADDRESS=your_deployed_contract_address
+PRIVATE_KEY=your_private_key_here
+MIN_PROFIT_USD=2.0
+```
 
-### Common Token Addresses
-Update these based on your network:
-- WETH, USDC, DAI addresses vary by network
+## 🚀 Usage
 
-## Troubleshooting
+### Deploy Contracts
 
-### "Arbitrage not profitable"
-- Prices may have changed between estimation and execution
-- Gas costs may be too high
-- Slippage may be too high
-- Try with a smaller amount or different token pair
+```bash
+# Compile
+npm run compile
 
-### "Slippage too high"
-- Market moved unfavorably
-- Increase `maxSlippageBps` (but be careful!)
-- Try a different token pair
+# Deploy to Base Sepolia
+npx hardhat run scripts/deploy-arbitrage.js --network baseSepolia
+```
 
-### "Insufficient balance to repay loan"
-- The arbitrage didn't generate enough profit
-- Check that prices are actually different between Aave and Moonwell
+### Run Bot
 
-## License
+**Option 1: Command Line**
+```bash
+cd bot
+npm start
+```
+
+**Option 2: Desktop App**
+```bash
+cd desktop-app
+npm start
+```
+
+### Desktop Controller
+
+The desktop app provides:
+- ✅ Start/Stop buttons
+- ✅ Real-time output
+- ✅ Statistics dashboard
+- ✅ Status indicators
+
+## 📊 How It Works
+
+1. **Scanner**: Continuously scans DexScreener for opportunities
+2. **Filtering**: Finds low-competition pairs
+3. **Validation**: Checks profit, gas, slippage
+4. **Execution**: Automatically executes profitable trades
+5. **Monitoring**: Tracks statistics and performance
+
+## 🔒 Security
+
+- ✅ `.env` files excluded from git
+- ✅ Private keys never committed
+- ✅ Safety mechanisms in contracts
+- ✅ Gas price protection
+- ✅ Profit validation
+
+## 📝 Documentation
+
+- `README_ADVANCED.md` - Advanced features
+- `OWN_CAPITAL_SETUP.md` - Own capital trading guide
+- `DESKTOP_APP_GUIDE.md` - Desktop app guide
+- `FLASH_LOAN_ALTERNATIVES.md` - Alternative approaches
+
+## ⚠️ Disclaimer
+
+This software is for educational purposes. Flash loans and arbitrage involve significant risks:
+- Smart contract bugs
+- Market volatility
+- Gas price spikes
+- MEV extraction
+
+Always test on testnet first and never invest more than you can afford to lose.
+
+## 📄 License
 
 MIT
-
-## Disclaimer
-
-This software is provided "as is" without warranty. Use at your own risk. Flash loans and arbitrage involve significant financial and technical risks. Always:
-- Test thoroughly on testnets
-- Start with small amounts
-- Monitor gas costs
-- Understand the risks
-- Never invest more than you can afford to lose

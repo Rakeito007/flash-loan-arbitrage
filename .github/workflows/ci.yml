@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+    
+    - name: Install dependencies
+      run: |
+        npm install
+        cd bot && npm install
+        cd ../desktop-app && npm install || true
+    
+    - name: Compile contracts
+      run: npm run compile
+      env:
+        PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+    
+    - name: Check for sensitive files
+      run: |
+        if git ls-files | grep -E "\.env$|\.key$|private"; then
+          echo "❌ Sensitive files detected in repository!"
+          exit 1
+        fi
+        echo "✅ No sensitive files found"
