@@ -24,38 +24,21 @@ async function runScanner() {
     ? process.env.TOKEN_ADDRESSES.split(',')
     : [];
 
-  // Prioritize weird pairs (low bot interest)
-  const results = await scanner.scanOpportunities(tokenAddresses, true);
+  const results = await scanner.scanOpportunities(tokenAddresses);
   
   console.log('\n' + '='.repeat(60));
   console.log('📊 SCAN RESULTS');
   console.log('='.repeat(60));
   console.log(`Total Pairs Found: ${results.pairs.length}`);
-  console.log(`Weird/Obscure Pairs: ${results.weirdPairs.length}`);
-  console.log(`Total Arbitrage Opportunities: ${results.opportunities.length}`);
-  console.log(`🎯 Weird Pair Opportunities: ${results.weirdOpportunities.length}`);
+  console.log(`Arbitrage Opportunities: ${results.opportunities.length}`);
   
   if (results.opportunities.length > 0) {
-    console.log('\n🎯 TOP OPPORTUNITIES (Weird Pairs First, Then by Competition):');
+    console.log('\n🎯 TOP OPPORTUNITIES (Lowest Competition First):');
     console.log('='.repeat(60));
     
-    // Show weird pairs first
-    const weirdOpps = results.opportunities.filter(opp => opp.isWeirdPair);
-    const normalOpps = results.opportunities.filter(opp => !opp.isWeirdPair);
-    
-    if (weirdOpps.length > 0) {
-      console.log('\n🌟 WEIRD PAIRS (Low Bot Interest - Prioritized):');
-      weirdOpps.slice(0, 5).forEach((opp, index) => {
-        console.log(scanner.formatOpportunity(opp, index));
-      });
-    }
-    
-    if (normalOpps.length > 0 && weirdOpps.length < 10) {
-      console.log('\n📊 Standard Pairs:');
-      normalOpps.slice(0, 10 - weirdOpps.length).forEach((opp, index) => {
-        console.log(scanner.formatOpportunity(opp, index + weirdOpps.length));
-      });
-    }
+    results.opportunities.slice(0, 10).forEach((opp, index) => {
+      console.log(scanner.formatOpportunity(opp, index));
+    });
 
     // Save to file for bot to use
     const fs = await import('fs');

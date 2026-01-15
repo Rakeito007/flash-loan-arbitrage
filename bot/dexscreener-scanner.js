@@ -22,17 +22,6 @@ const COMPETITION_THRESHOLDS = {
   maxPriceChange24h: 100,   // Max 100% change
 };
 
-// "Weird pair" indicators - pairs that bots have limited interest in
-const WEIRD_PAIR_INDICATORS = {
-  maxVolume24h: 50000,       // Lower volume = less bot interest
-  maxTxns24h: 50,            // Fewer transactions = less activity
-  minLiquidity: 500,         // Need some liquidity but not too much
-  maxLiquidity: 50000,       // Lower liquidity = less whale interest
-  minPairsCount: 1,          // Pairs that exist on fewer DEXes
-  obscureTokenNames: true,   // Prefer non-standard token names
-  lowMarketCap: true,       // Lower market cap tokens
-};
-
 class DexScreenerScanner {
   constructor() {
     this.cache = new Map();
@@ -140,103 +129,9 @@ class DexScreenerScanner {
   }
 
   /**
-   * Filter for "weird pairs" - obscure pairs with low bot interest
-   */
-  filterWeirdPairs(pairs) {
-    console.log(`\n🔍 Identifying weird/obscure pairs (low bot interest)...`);
-    
-    const weirdPairs = pairs.filter(pair => {
-      const volume24h = parseFloat(pair.volume?.h24 || 0);
-      const txns24h = parseInt(pair.txns?.h24?.buys || 0) + parseInt(pair.txns?.h24?.sells || 0);
-      const liquidity = parseFloat(pair.liquidity?.usd || 0);
-      const baseSymbol = (pair.baseToken?.symbol || '').toLowerCase();
-      const quoteSymbol = (pair.quoteToken?.symbol || '').toLowerCase();
-      
-      // Common tokens that bots love (exclude these)
-      const commonTokens = ['weth', 'eth', 'usdc', 'usdt', 'dai', 'wbtc', 'btc', 'bnb', 'matic', 'avax'];
-      const isCommonPair = commonTokens.includes(baseSymbol) && commonTokens.includes(quoteSymbol);
-      
-      // Check if token names look "weird" (not standard)
-      const baseName = (pair.baseToken?.name || '').toLowerCase();
-      const quoteName = (pair.quoteToken?.name || '').toLowerCase();
-      const hasWeirdName = !baseName.includes('wrapped') && 
-                          !baseName.includes('stablecoin') &&
-                          !quoteName.includes('wrapped') &&
-                          !quoteName.includes('stablecoin');
-      
-      // Weird pair criteria
-      const isWeird = (
-        volume24h <= WEIRD_PAIR_INDICATORS.maxVolume24h &&
-        volume24h > 0 && // Must have some activity
-        txns24h <= WEIRD_PAIR_INDICATORS.maxTxns24h &&
-        liquidity >= WEIRD_PAIR_INDICATORS.minLiquidity &&
-        liquidity <= WEIRD_PAIR_INDICATORS.maxLiquidity &&
-        !isCommonPair && // Not a common pair
-        hasWeirdName // Has non-standard token names
-      );
-
-      return isWeird;
-    });
-
-    console.log(`Found ${weirdPairs.length} weird/obscure pairs`);
-    return weirdPairs;
-  }
-
-  /**
-   * Calculate "weirdness score" - higher = more obscure, less bot interest
-   */
-  calculateWeirdnessScore(pair) {
-    let score = 0;
-    
-    const volume24h = parseFloat(pair.volume?.h24 || 0);
-    const txns24h = parseInt(pair.txns?.h24?.buys || 0) + parseInt(pair.txns?.h24?.sells || 0);
-    const liquidity = parseFloat(pair.liquidity?.usd || 0);
-    const baseSymbol = (pair.baseToken?.symbol || '').toLowerCase();
-    const quoteSymbol = (pair.quoteToken?.symbol || '').toLowerCase();
-    
-    // Lower volume = more weird (bots avoid)
-    if (volume24h < 10000) score += 30;
-    else if (volume24h < 25000) score += 20;
-    else if (volume24h < 50000) score += 10;
-    
-    // Fewer transactions = more weird
-    if (txns24h < 20) score += 30;
-    else if (txns24h < 50) score += 20;
-    else if (txns24h < 100) score += 10;
-    
-    // Lower liquidity = more weird (but still tradeable)
-    if (liquidity < 5000) score += 20;
-    else if (liquidity < 20000) score += 15;
-    else if (liquidity < 50000) score += 10;
-    
-    // Non-standard token names = more weird
-    const commonTokens = ['weth', 'eth', 'usdc', 'usdt', 'dai', 'wbtc', 'btc'];
-    if (!commonTokens.includes(baseSymbol) && !commonTokens.includes(quoteSymbol)) {
-      score += 20; // Both tokens are uncommon
-    } else if (!commonTokens.includes(baseSymbol) || !commonTokens.includes(quoteSymbol)) {
-      score += 10; // One token is uncommon
-    }
-    
-    // Long or unusual token names
-    const baseName = (pair.baseToken?.name || '').toLowerCase();
-    const quoteName = (pair.quoteToken?.name || '').toLowerCase();
-    if (baseName.length > 20 || quoteName.length > 20) {
-      score += 10; // Unusually long names
-    }
-    
-    // Token symbols with numbers or special chars (often obscure)
-    if (/\d/.test(baseSymbol) || /\d/.test(quoteSymbol)) {
-      score += 5;
-    }
-    
-    return score;
-  }
-
-  /**
    * Find arbitrage opportunities between DEXes
-   * Prioritizes "weird pairs" with low bot interest
    */
-  findArbitrageOpportunities(pairs, prioritizeWeird = true) {
+  findArbitrageOpportunities(pairs) {
     const opportunities = [];
     
     // Group pairs by token pair (e.g., WETH/USDC)
@@ -270,10 +165,6 @@ class DexScreenerScanner {
                 
                 // Minimum 0.5% price difference for arbitrage
                 if (priceDiffPercent >= 0.5) {
-                  // Calculate weirdness score for this pair
-                  const weirdnessScore = this.calculateWeirdnessScore(pair1) + 
-                                        this.calculateWeirdnessScore(pair2);
-                  
                   opportunities.push({
                     tokenPair: key,
                     baseToken: pair1.baseToken,
@@ -297,8 +188,6 @@ class DexScreenerScanner {
                     buyOn: price1 < price2 ? pair1.dexId : pair2.dexId,
                     sellOn: price1 < price2 ? pair2.dexId : pair1.dexId,
                     competitionScore: this.calculateCompetitionScore(pair1, pair2),
-                    weirdnessScore: weirdnessScore, // Higher = more obscure, less bot interest
-                    isWeirdPair: weirdnessScore >= 50, // Threshold for "weird" pairs
                   });
                 }
               }
@@ -308,23 +197,8 @@ class DexScreenerScanner {
       }
     });
 
-    // Sort: prioritize weird pairs first, then by competition score
-    if (prioritizeWeird) {
-      return opportunities.sort((a, b) => {
-        // Weird pairs first
-        if (a.isWeirdPair && !b.isWeirdPair) return -1;
-        if (!a.isWeirdPair && b.isWeirdPair) return 1;
-        // Then by weirdness score (higher = better)
-        if (a.weirdnessScore !== b.weirdnessScore) {
-          return b.weirdnessScore - a.weirdnessScore;
-        }
-        // Finally by competition score (lower = better)
-        return a.competitionScore - b.competitionScore;
-      });
-    } else {
-      // Sort by competition score (lower = less competition)
-      return opportunities.sort((a, b) => a.competitionScore - b.competitionScore);
-    }
+    // Sort by competition score (lower = less competition)
+    return opportunities.sort((a, b) => a.competitionScore - b.competitionScore);
   }
 
   /**
@@ -345,15 +219,10 @@ class DexScreenerScanner {
   }
 
   /**
-   * Scan for opportunities, prioritizing weird/obscure pairs
+   * Scan for opportunities
    */
-  async scanOpportunities(tokenAddresses = [], prioritizeWeird = true) {
-    console.log('🔍 Scanning DexScreener for opportunities...');
-    if (prioritizeWeird) {
-      console.log('🎯 Prioritizing weird/obscure pairs (low bot interest)\n');
-    } else {
-      console.log('📊 Standard scan mode\n');
-    }
+  async scanOpportunities(tokenAddresses = []) {
+    console.log('🔍 Scanning DexScreener for low-competition opportunities...\n');
 
     let allPairs = [];
 
@@ -366,7 +235,7 @@ class DexScreenerScanner {
         await new Promise(resolve => setTimeout(resolve, 500)); // Rate limiting
       }
     } else {
-      // Search for common tokens AND look for obscure ones
+      // Search for common tokens
       const commonTokens = [
         'WETH',
         'USDC',
@@ -380,20 +249,6 @@ class DexScreenerScanner {
         allPairs.push(...pairs);
         await new Promise(resolve => setTimeout(resolve, 500));
       }
-      
-      // Also search for random/obscure tokens by searching Base network broadly
-      console.log('Searching for obscure pairs on Base...');
-      try {
-        // Search for less common terms that might reveal weird pairs
-        const obscureSearches = ['base', 'test', 'meme', 'new'];
-        for (const term of obscureSearches) {
-          const pairs = await this.searchPairs(term);
-          allPairs.push(...pairs);
-          await new Promise(resolve => setTimeout(resolve, 500));
-        }
-      } catch (error) {
-        console.log('  (Some searches may have failed - this is OK)');
-      }
     }
 
     console.log(`\nFound ${allPairs.length} total pairs`);
@@ -402,25 +257,13 @@ class DexScreenerScanner {
     const lowCompetitionPairs = this.filterLowCompetitionPairs(allPairs);
     console.log(`Filtered to ${lowCompetitionPairs.length} low-competition pairs`);
 
-    // Identify weird pairs
-    const weirdPairs = this.filterWeirdPairs(lowCompetitionPairs);
-    console.log(`🎯 Found ${weirdPairs.length} weird/obscure pairs (low bot interest)`);
-
-    // Find arbitrage opportunities (prioritize weird pairs if enabled)
-    const opportunities = this.findArbitrageOpportunities(
-      lowCompetitionPairs, 
-      prioritizeWeird
-    );
-    
-    const weirdOpportunities = opportunities.filter(opp => opp.isWeirdPair);
-    console.log(`Found ${opportunities.length} total arbitrage opportunities`);
-    console.log(`🎯 ${weirdOpportunities.length} weird pair opportunities (prioritized)\n`);
+    // Find arbitrage opportunities
+    const opportunities = this.findArbitrageOpportunities(lowCompetitionPairs);
+    console.log(`Found ${opportunities.length} arbitrage opportunities\n`);
 
     return {
       pairs: lowCompetitionPairs,
-      weirdPairs: weirdPairs,
       opportunities: opportunities,
-      weirdOpportunities: weirdOpportunities,
     };
   }
 
@@ -428,14 +271,12 @@ class DexScreenerScanner {
    * Format opportunity for display
    */
   formatOpportunity(opp, index) {
-    const weirdBadge = opp.isWeirdPair ? ' 🎯 WEIRD PAIR (Low Bot Interest)' : '';
     return `
-${index + 1}. ${opp.baseToken.symbol}/${opp.quoteToken.symbol}${weirdBadge}
+${index + 1}. ${opp.baseToken.symbol}/${opp.quoteToken.symbol}
    📊 Price Difference: ${opp.priceDifferencePercent.toFixed(2)}%
    💰 Buy on: ${opp.buyOn} ($${opp.dex1.price.toFixed(6)})
    💰 Sell on: ${opp.sellOn} ($${opp.dex2.price.toFixed(6)})
    📈 Competition Score: ${opp.competitionScore.toFixed(2)} (lower = better)
-   🎯 Weirdness Score: ${opp.weirdnessScore || 0} (higher = more obscure)
    💧 Total Liquidity: $${(opp.dex1.liquidity + opp.dex2.liquidity).toFixed(2)}
    📊 Total Volume 24h: $${(opp.dex1.volume24h + opp.dex2.volume24h).toFixed(2)}
    🔗 Token Addresses:
