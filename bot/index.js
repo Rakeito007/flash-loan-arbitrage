@@ -94,8 +94,11 @@ class FlashLoanBot {
         this.provider
       );
 
-      // Calculate trade amount (60-75% of flash loan)
-      const tradePercent = 60 + Math.floor(Math.random() * 16); // 60-75%
+      // Variable trade percentage (50-71%) to avoid bot tracking
+      // Randomize to make pattern detection harder
+      const minPercent = 50;
+      const maxPercent = 71;
+      const tradePercent = minPercent + Math.floor(Math.random() * (maxPercent - minPercent + 1));
       const tradeAmount = (flashLoanAmount * BigInt(tradePercent)) / 100n;
 
       // Get expected output

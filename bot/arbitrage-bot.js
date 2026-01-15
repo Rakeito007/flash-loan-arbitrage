@@ -141,15 +141,25 @@ class ArbitrageBot {
       const tokenIn = opportunity.baseToken.address;
       const tokenOut = opportunity.quoteToken.address;
 
+      // Variable trade percentage (50-71%) to avoid bot tracking
+      // Randomize to make pattern detection harder - varies each trade
+      const minPercent = 50;
+      const maxPercent = 71;
+      const tradePercent = minPercent + Math.floor(Math.random() * (maxPercent - minPercent + 1));
+      
+      console.log(`   Trade %: ${tradePercent}% (variable to avoid tracking)`);
+
       // Estimate profit using contract
       const moonwellPath = [tokenIn, tokenOut];
       const uniswapFee = 3000; // 0.3% fee tier (common)
 
       try {
+        // Use variable trade percentage for estimation
         const [expectedOut, profit, profitUSD] = await this.contract.estimateArbitrageProfit(
           tokenIn,
           tokenOut,
           ethers.parseEther('0.1'), // Test with 0.1 tokens
+          tradePercent, // Pass variable percentage
           moonwellPath,
           uniswapFee,
           buyOnMoonwell
@@ -201,10 +211,14 @@ class ArbitrageBot {
         return;
       }
 
-      // Use smaller amount for safety
-      const tradeAmount = balance / 10n > ethers.parseEther('0.01') 
-        ? ethers.parseEther('0.01')
-        : balance / 10n;
+      // Variable trade percentage (50-71%) to avoid bot tracking
+      const minPercent = 50;
+      const maxPercent = 71;
+      const tradePercent = minPercent + Math.floor(Math.random() * (maxPercent - minPercent + 1));
+      
+      // Calculate trade amount based on variable percentage
+      // We'll pass the full balance and percentage to contract
+      const fullBalance = balance;
       
       // Estimate output using contract
       const [expectedOut, , ] = await this.contract.estimateArbitrageProfit(
@@ -228,7 +242,8 @@ class ArbitrageBot {
         tx = await this.contract.arbitrageMoonwellToUniswap(
           tokenIn,
           tokenOut,
-          tradeAmount,
+          balance, // Use full balance, contract will calculate trade amount
+          tradePercent, // Variable percentage
           moonwellPath,
           uniswapFee,
           minAmountOut,
@@ -238,7 +253,8 @@ class ArbitrageBot {
         tx = await this.contract.arbitrageUniswapToMoonwell(
           tokenIn,
           tokenOut,
-          tradeAmount,
+          balance, // Use full balance, contract will calculate trade amount
+          tradePercent, // Variable percentage
           uniswapFee,
           moonwellPath,
           minAmountOut,

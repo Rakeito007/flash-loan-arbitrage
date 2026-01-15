@@ -142,7 +142,7 @@ contract BaseMEVArb is FlashLoanSimpleReceiverBase, Ownable, ReentrancyGuard {
             bytes32 routeHash
         ) = abi.decode(data, (uint256, address[], uint256, bytes32));
 
-        // Calculate trade amount (partial trade: 60-75% of loan)
+        // Calculate trade amount (variable percentage: 50-71% of loan to avoid tracking)
         uint256 tradeAmount = (amount * tradePercent) / 100;
         uint256 reserveAmount = amount - tradeAmount; // Keep reserve for repayment
 
