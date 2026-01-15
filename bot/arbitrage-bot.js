@@ -216,15 +216,14 @@ class ArbitrageBot {
       const maxPercent = 71;
       const tradePercent = minPercent + Math.floor(Math.random() * (maxPercent - minPercent + 1));
       
-      // Calculate trade amount based on variable percentage
-      // We'll pass the full balance and percentage to contract
-      const fullBalance = balance;
+      console.log(`   Trade %: ${tradePercent}% (variable to avoid tracking)`);
       
-      // Estimate output using contract
+      // Estimate output using contract with variable percentage
       const [expectedOut, , ] = await this.contract.estimateArbitrageProfit(
         tokenIn,
         tokenOut,
-        tradeAmount,
+        balance, // Full balance
+        tradePercent, // Variable percentage
         moonwellPath,
         uniswapFee,
         buyOnMoonwell
@@ -233,8 +232,12 @@ class ArbitrageBot {
       // Calculate min amount out (5% slippage tolerance)
       const minAmountOut = expectedOut * 95n / 100n;
 
+      // Calculate actual trade amount for display
+      const actualTradeAmount = (balance * BigInt(tradePercent)) / 100n;
+      
       console.log(`   🚀 Executing arbitrage...`);
-      console.log(`      Amount: ${ethers.formatEther(tradeAmount)} ${opportunity.baseToken.symbol}`);
+      console.log(`      Total Balance: ${ethers.formatEther(balance)} ${opportunity.baseToken.symbol}`);
+      console.log(`      Trade Amount: ${ethers.formatEther(actualTradeAmount)} (${tradePercent}%)`);
       console.log(`      Direction: ${buyOnMoonwell ? 'Moonwell → Uniswap' : 'Uniswap → Moonwell'}`);
 
       let tx;
