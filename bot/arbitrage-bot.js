@@ -94,13 +94,18 @@ class ArbitrageBot {
         '0x50c5725949A6F0c72E6C4a641F24049A917E0D6E', // DAI
       ];
 
-      const results = await this.scanner.scanOpportunities(tokenAddresses);
+      // Prioritize weird pairs (low bot interest)
+      const results = await this.scanner.scanOpportunities(tokenAddresses, true);
       
       if (results.opportunities.length > 0) {
         this.stats.opportunitiesFound += results.opportunities.length;
+        const weirdCount = results.weirdOpportunities?.length || 0;
         console.log(`✅ Found ${results.opportunities.length} opportunities`);
+        if (weirdCount > 0) {
+          console.log(`🎯 ${weirdCount} weird pair opportunities (prioritized)`);
+        }
         
-        // Process opportunities
+        // Process opportunities (weird pairs are already sorted first)
         for (const opp of results.opportunities) {
           await this.processOpportunity(opp);
         }
@@ -120,9 +125,13 @@ class ArbitrageBot {
    */
   async processOpportunity(opportunity) {
     try {
-      console.log(`\n📊 Processing: ${opportunity.baseToken.symbol}/${opportunity.quoteToken.symbol}`);
+      const weirdBadge = opportunity.isWeirdPair ? ' 🎯 WEIRD PAIR' : '';
+      console.log(`\n📊 Processing: ${opportunity.baseToken.symbol}/${opportunity.quoteToken.symbol}${weirdBadge}`);
       console.log(`   Price Diff: ${opportunity.priceDifferencePercent.toFixed(2)}%`);
       console.log(`   Competition: ${opportunity.competitionScore.toFixed(2)}`);
+      if (opportunity.weirdnessScore) {
+        console.log(`   Weirdness: ${opportunity.weirdnessScore} (higher = more obscure, less bot interest)`);
+      }
 
       // Check if profitable enough
       if (opportunity.priceDifferencePercent < 0.5) {
